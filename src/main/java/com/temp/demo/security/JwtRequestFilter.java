@@ -6,6 +6,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Component
@@ -36,10 +38,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             try {
                 String usernameFromToken = jwtTokenUtil.getUsernameFromToken(jwtToken);
                 Staff staff = staffService.getByUsername(usernameFromToken);
-//                List<SimpleGrantedAuthority> authorities = staffService.getStaffAuthority(staff);
-
+                List<SimpleGrantedAuthority> authorities = staffService.getStaffAuthority(staff);
                 if (jwtTokenUtil.validateToken(jwtToken, staff)) {
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(staff, null, new ArrayList<>());
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(staff, null, authorities);
                     usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                 }

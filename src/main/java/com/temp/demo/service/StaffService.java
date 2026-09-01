@@ -10,6 +10,7 @@ import com.temp.demo.dto.request.RequestStaffChangeProfileDTO;
 import com.temp.demo.dto.request.RequestStaffRegisterDTO;
 import com.temp.demo.dto.request.RequestUploadFileDTO;
 import com.temp.demo.dto.response.ResponseAuthenticateDTO;
+import com.temp.demo.entity.Authority;
 import com.temp.demo.entity.Staff;
 import com.temp.demo.exception.AuthenticationException;
 import com.temp.demo.exception.DataErrorException;
@@ -34,9 +35,11 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -87,12 +90,12 @@ public class StaffService implements UserDetailsService {
                     .collect(Collectors.toList());
         }
 
+        Set<String> authorities = staffRepository.getAuthorities(staff.getId());
         List<SimpleGrantedAuthority> result = new ArrayList<>();
         StringJoiner newValue = new StringJoiner(",");
-        Collection<? extends GrantedAuthority> authorities = staff.getAuthorities();
-        for(GrantedAuthority grantedAuthority : authorities) {
-            result.add(new SimpleGrantedAuthority(grantedAuthority.getAuthority()));
-            newValue.add(grantedAuthority.getAuthority());
+        for(String authority : authorities) {
+            result.add(new SimpleGrantedAuthority(authority));
+            newValue.add(authority);
         }
         CompletableFuture.runAsync(() -> redisManagementService.setValueToRedis(key, staff.getId(), newValue.toString()));
         return result;

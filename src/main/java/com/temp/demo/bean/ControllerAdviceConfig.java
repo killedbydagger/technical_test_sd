@@ -9,6 +9,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
@@ -115,6 +116,14 @@ public class ControllerAdviceConfig {
         String message = String.format("Path '%s' with '%s' method is not found", ex.getRequestURL(), ex.getHttpMethod());
         return processError(message, HttpStatus.NOT_FOUND);
     }
+
+    /* Handling Access Denied */
+    @ExceptionHandler(value = AccessDeniedException.class)
+    public ResponseEntity<BasicResponse<String>> handleAccessDeniedException(AccessDeniedException ex) {
+        logger.warn("AccessDeniedException has occurred");
+        return processError(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
 
     @ExceptionHandler(value = HttpMessageNotReadableException.class)
     public ResponseEntity<BasicResponse<String>> handleMessageNotReadableException(HttpMessageNotReadableException ex) {
