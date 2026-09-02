@@ -22,7 +22,6 @@ public class RequestCreateProductDTO {
     private BigDecimal price;
 
     @NotNull(message = "Field 'description' is required")
-    @Size(min = 20, max = 500, message = "Field `description` has 20 min characters and 255 max characters")
     @ApiModelProperty(value = "The description of the product", required = true, example = "lorem ipsum dolor sit amet")
     private String description;
 }
