@@ -2,6 +2,7 @@ package com.temp.demo.service;
 
 import com.temp.demo.bean.BCryptPasswordEncoding;
 import com.temp.demo.dto.EmailVerificationRegisterDTO;
+import com.temp.demo.dto.kafka.UserRegistrationDTO;
 import com.temp.demo.dto.request.RequestAuthenticateDTO;
 import com.temp.demo.dto.request.RequestForgetPasswordDTO;
 import com.temp.demo.dto.request.RequestResetPasswordDTO;
@@ -41,6 +42,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -64,6 +66,9 @@ public class StaffService implements UserDetailsService {
 
     @Autowired
     private RedisManagementService redisManagementService;
+
+    @Autowired
+    private KafkaProducer kafkaProducer;
 
     @Value("${credential.secret.key}")
     private String credentialSecretKey;
@@ -116,6 +121,8 @@ public class StaffService implements UserDetailsService {
         staff.setActive(Boolean.TRUE);
         staff.setEnabled(Boolean.TRUE);
         staffRepository.save(staff);
+
+        kafkaProducer.sendMessage("user-registration-email", UserRegistrationDTO.builder().name(staff.getUsername()).verificationUrl(UUID.randomUUID().toString()).build());
     }
 
     public ResponseAuthenticateDTO authenticate(RequestAuthenticateDTO authenticateDTO) {
