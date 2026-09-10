@@ -16,7 +16,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -25,12 +24,11 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-
     public ResponseCustomPaging<ResponseProductDTO> getProduct(String name, BigDecimal minPrice, BigDecimal maxPrice,
-                                                                   String sortBy, String sortOrder, int pageNumber, int pageSize) {
+            String sortBy, String sortOrder, int pageNumber, int pageSize) {
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortOrder.toUpperCase()), sortBy);
-        PageRequest pageRequest = PageRequest.of(pageNumber-1, pageSize, sort);
+        PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize, sort);
         Page<Product> pages = productRepository.findProductPaging(name, minPrice, maxPrice, pageRequest);
         return new ResponseCustomPaging<>(pages.map(this::convert));
     }
@@ -48,7 +46,7 @@ public class ProductService {
 
     public ResponseProductDTO updateProduct(RequestUpdateProductDTO updateProductDTO) {
         Optional<Product> findById = productRepository.findById(updateProductDTO.getId());
-        if(!findById.isPresent())
+        if (!findById.isPresent())
             throw new DataNotFoundException("Product not found");
 
         Product product = findById.get();
@@ -61,7 +59,7 @@ public class ProductService {
 
     public void deleteProduct(RequestDeleteProductDTO deleteProductDTO) {
         Optional<Product> findById = productRepository.findById(deleteProductDTO.getId());
-        if(!findById.isPresent())
+        if (!findById.isPresent())
             throw new DataNotFoundException("Product not found");
 
         Product product = findById.get();

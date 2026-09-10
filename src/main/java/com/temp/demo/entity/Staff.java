@@ -13,7 +13,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,20 +38,14 @@ public class Staff implements UserDetails {
     private String lastUpdate;
 
     @ManyToMany
-    @JoinTable(
-            name = "user_authority",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "authority_id")
-    )
+    @JoinTable(name = "user_authority", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "authority_id"))
     private Set<Authority> permission = new HashSet<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return getPermission()
                 .stream()
-                .map(authority ->
-                        new SimpleGrantedAuthority(authority.getName())
-                ).collect(Collectors.toList());
+                .map(authority -> new SimpleGrantedAuthority(authority.getName())).collect(Collectors.toList());
     }
 
     @Override
