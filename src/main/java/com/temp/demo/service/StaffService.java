@@ -1,8 +1,7 @@
 package com.temp.demo.service;
 
 import com.temp.demo.bean.BCryptPasswordEncoding;
-import com.temp.demo.dto.EmailVerificationRegisterDTO;
-import com.temp.demo.dto.kafka.UserRegistrationDTO;
+import com.temp.demo.dto.EmailVerificationDTO;
 import com.temp.demo.dto.request.RequestAuthenticateDTO;
 import com.temp.demo.dto.request.RequestForgetPasswordDTO;
 import com.temp.demo.dto.request.RequestResetPasswordDTO;
@@ -24,6 +23,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -38,7 +38,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -62,9 +61,6 @@ public class StaffService implements UserDetailsService {
 
     @Autowired
     private RedisManagementService redisManagementService;
-
-    @Autowired
-    private KafkaProducer kafkaProducer;
 
     @Value("${credential.secret.key}")
     private String credentialSecretKey;
@@ -118,9 +114,6 @@ public class StaffService implements UserDetailsService {
         staff.setActive(Boolean.TRUE);
         staff.setEnabled(Boolean.TRUE);
         staffRepository.save(staff);
-
-        kafkaProducer.sendMessage("user-registration-email", UserRegistrationDTO.builder().name(staff.getUsername())
-                .verificationUrl(UUID.randomUUID().toString()).build());
     }
 
     public ResponseAuthenticateDTO authenticate(RequestAuthenticateDTO authenticateDTO) {
@@ -148,10 +141,9 @@ public class StaffService implements UserDetailsService {
             throw new DataErrorException("Email is invalid");
 
         String token = createForgetPasswordSession(staff, Constants.getTimestamp(Boolean.FALSE));
-        EmailVerificationRegisterDTO verificationRegisterDTO = new EmailVerificationRegisterDTO();
-        verificationRegisterDTO.setVerificationUrl(String.format("%s/user/reset_password/%s", frontEndUrl, token));
-
-        CompletableFuture.runAsync(() -> emailService.sendEmailVerificationRegister(verificationRegisterDTO));
+        EmailVerificationDTO verificationDTO = new EmailVerificationDTO();
+        verificationDTO.setVerificationUrl(String.format("%s/user/reset_password/%s", frontEndUrl, token));
+        emailService.sendEmailVerificationForgetPasswordAsync(verificationDTO);
     }
 
     public boolean validateForgetPasswordSession(String token) {

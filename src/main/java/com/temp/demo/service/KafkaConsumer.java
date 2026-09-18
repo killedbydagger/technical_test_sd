@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class KafkaConsumer {
 
-    @KafkaListener(topics = "user-registration-email", groupId = "my-consumer-group-1")
+    @KafkaListener(topics = "orders", groupId = "my-consumer-group-1")
     public void consume(UserRegistrationDTO dto) {
-        System.out.println(dto);
+
     }
 }

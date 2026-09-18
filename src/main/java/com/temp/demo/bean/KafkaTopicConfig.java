@@ -10,6 +10,6 @@ public class KafkaTopicConfig {
 
     @Bean
     public NewTopic mailingSystemTopic() {
-        return TopicBuilder.name("user-registration-email").build();
+        return TopicBuilder.name("orders").build();
     }
 }

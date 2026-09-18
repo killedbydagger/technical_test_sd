@@ -35,16 +35,19 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (!Objects.isNull(authToken) && authToken.startsWith("Bearer ")) {
             String jwtToken = authToken.substring(7);
             try {
-                String usernameFromToken = jwtTokenUtil.getUsernameFromToken(jwtToken);
-                Staff staff = staffService.getByUsername(usernameFromToken);
-                List<SimpleGrantedAuthority> authorities = staffService.getStaffAuthority(staff);
-                if (jwtTokenUtil.validateToken(jwtToken, staff)) {
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                            staff, null, authorities);
-                    usernamePasswordAuthenticationToken
-                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                String username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+                if (!Objects.isNull(username) && Objects.isNull(SecurityContextHolder.getContext().getAuthentication())) {
+                    Staff staff = staffService.getByUsername(username);
+                    List<SimpleGrantedAuthority> authorities = staffService.getStaffAuthority(staff);
+                    if (jwtTokenUtil.validateToken(jwtToken, staff)) {
+                        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                                staff, null, authorities);
+                        usernamePasswordAuthenticationToken
+                                .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    }
                 }
+
             } catch (SignatureException e) {
                 logger.warn("JWT_SIGNATURE_ERROR");
             } catch (IllegalArgumentException e) {

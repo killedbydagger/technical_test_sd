@@ -22,7 +22,6 @@ public class RedisConnectionChecker {
 
     @PostConstruct
     public void init() {
-        // todo create connection from swagger
         this.isConnectionClear = redisManagementService.checkConnection();
         logger.info(String.format("Connection to redis is %s", this.isConnectionClear ? "available" : "not available"));
     }
