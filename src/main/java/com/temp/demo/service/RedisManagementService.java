@@ -5,10 +5,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +34,41 @@ public class RedisManagementService {
         } catch (RedisConnectionFailureException exception) {
             return Boolean.FALSE;
         }
+    }
+
+    public String getValueFromRedis(String key) {
+        if(redisConnectionChecker.isConnectionClear()) {
+            try {
+                Boolean hasKey = stringRedisTemplate.hasKey(key);
+                BoundValueOperations<String, String> vOps = stringRedisTemplate.boundValueOps(key);
+                if(Boolean.TRUE.equals(hasKey)) {
+                    String string = vOps.get();
+                    if(StringUtils.hasLength(string))
+                        return string;
+                }
+            } catch (RedisConnectionFailureException exception) {
+                logger.warn("Redis connection failure, closing the connection temporarily");
+                redisConnectionChecker.setConnectionClear(Boolean.FALSE);
+            } catch (Exception exception) {
+                logger.warn("Un catch failed to get from Redis");
+            }
+        }
+        return null;
+    }
+
+    public Boolean setValueToRedis(String key, String value, int timeout, TimeUnit timeUnit) {
+        if(redisConnectionChecker.isConnectionClear()) {
+            try {
+                BoundValueOperations<String, String> vOps = stringRedisTemplate.boundValueOps(key);
+                return vOps.setIfAbsent(value, timeout, timeUnit);
+            } catch (RedisConnectionFailureException exception) {
+                logger.warn("Redis connection failure, closing the connection temporarily");
+                redisConnectionChecker.setConnectionClear(Boolean.FALSE);
+            } catch (Exception exception) {
+                logger.warn("Un catch failed to save to Redis");
+            }
+        }
+        return null;
     }
 
     public void setValueToRedis(String key, double score, String value) {

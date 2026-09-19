@@ -8,8 +8,8 @@ import org.springframework.kafka.config.TopicBuilder;
 @Configuration
 public class KafkaTopicConfig {
 
-    @Bean
-    public NewTopic mailingSystemTopic() {
-        return TopicBuilder.name("orders").build();
-    }
+//    @Bean
+//    public NewTopic mailingSystemTopic() {
+//        return TopicBuilder.name("orders").build();
+//    }
 }

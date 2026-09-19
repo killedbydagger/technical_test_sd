@@ -134,11 +134,11 @@ public class ControllerAdviceConfig {
     @ExceptionHandler(value = CaughtException.class)
     public ResponseEntity<BasicResponse<String>> handleCaughtException(CaughtException ex) {
         logger.warn("CaughtException has occurred");
-        return processError(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        return processError(ex.getMessage(), HttpStatus.valueOf(ex.getCode()));
     }
 
     @ExceptionHandler(value = Exception.class)
-    public ResponseEntity<BasicResponse<String>> handleCaughtException(Exception ex) {
+    public ResponseEntity<BasicResponse<String>> handleUnCaughtException(Exception ex) {
         logger.warn("Exception has occurred");
         return processError(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
