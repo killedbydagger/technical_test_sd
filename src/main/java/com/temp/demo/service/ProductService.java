@@ -41,10 +41,10 @@ public class ProductService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ResponseCustomPaging<ResponseProductDTO> getProduct(String name, BigDecimal minPrice, BigDecimal maxPrice,
-            String sortBy, String sortOrder, int pageNumber, int pageSize) {
+                                                               String sortBy, String sortOrder, int pageNumber, int pageSize) {
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortOrder.toUpperCase()), sortBy);
-        PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize, sort);
+        PageRequest pageRequest = PageRequest.of(pageNumber-1, pageSize, sort);
         Page<Product> pages = productRepository.findProductPaging(name, minPrice, maxPrice, pageRequest);
         return new ResponseCustomPaging<>(pages.map(this::convert));
     }
