@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -171,6 +172,7 @@ public class ProductControllerTest {
     @Test
     @DisplayName("updateProduct - Success returns 200 OK")
     void updateProduct_success() throws Exception {
+        String idempotencyKey = "test-idempotency-key";
         RequestUpdateProductDTO requestDTO = new RequestUpdateProductDTO();
         requestDTO.setId(1);
         requestDTO.setName("Updated Product");
@@ -183,9 +185,10 @@ public class ProductControllerTest {
         responseDTO.setPrice(new BigDecimal("29.99"));
         responseDTO.setDescription("Updated product description");
 
-        when(productService.updateProduct(any(RequestUpdateProductDTO.class))).thenReturn(responseDTO);
+        when(productService.updateProduct(eq(idempotencyKey), any(RequestUpdateProductDTO.class))).thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/product/update")
+                        .header("Idempotency-Key", idempotencyKey)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isOk())
@@ -193,7 +196,45 @@ public class ProductControllerTest {
                 .andExpect(jsonPath("$.message").value("success"))
                 .andExpect(jsonPath("$.content.name").value("Updated Product"));
 
-        verify(productService).updateProduct(any(RequestUpdateProductDTO.class));
+        verify(productService).updateProduct(eq(idempotencyKey), any(RequestUpdateProductDTO.class));
+    }
+
+    @Test
+    @DisplayName("updateProduct - Missing Idempotency-Key header returns 400 Bad Request")
+    void updateProduct_missingIdempotencyKey_returns400() throws Exception {
+        RequestUpdateProductDTO requestDTO = new RequestUpdateProductDTO();
+        requestDTO.setId(1);
+        requestDTO.setName("Updated Product");
+        requestDTO.setPrice(new BigDecimal("29.99"));
+        requestDTO.setDescription("Updated product description");
+
+        mockMvc.perform(post("/api/product/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Request header Idempotency-Key is required"));
+
+        verify(productService, never()).updateProduct(any(), any());
+    }
+
+    @Test
+    @DisplayName("updateProduct - Missing required name returns 400 Bad Request")
+    void updateProduct_missingName_returns400() throws Exception {
+        RequestUpdateProductDTO requestDTO = new RequestUpdateProductDTO();
+        // name is null
+        requestDTO.setId(1);
+        requestDTO.setPrice(new BigDecimal("29.99"));
+        requestDTO.setDescription("Updated product description");
+
+        mockMvc.perform(post("/api/product/update")
+                        .header("Idempotency-Key", "test-idempotency-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+
+        verify(productService, never()).updateProduct(any(), any());
     }
 
     // ==========================================
