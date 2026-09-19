@@ -6,7 +6,7 @@ Java 8
 Redis 
 
 Graddle Wrapper is ready, just clone to local and run the program,
-every configuration are in application.properties, for some setting just need a lil fine tuning such as Redis port or username
+every configuration are in application.properties, for some setting just need a little fine tuning such as Redis port or username
 
 MySQL Query for Databases
 
@@ -50,4 +50,12 @@ CREATE TABLE staff_authority (
     staff_id BIGINT NOT NULL,
     authority_id BIGINT NOT NULL,
     PRIMARY KEY (staff_id, authority_id)
+);
+
+CREATE TABLE `idempotency-keys`(
+	`id` VARCHAR(255) NOT NULL PRIMARY KEY,
+	`idempotency-key` VARCHAR(255) UNIQUE NOT NULL,
+	`hash_request` VARCHAR(255) NOT NULL, 
+	`response` TEXT, 
+	`created_at` BIGINT UNSIGNED NOT NULL
 );
